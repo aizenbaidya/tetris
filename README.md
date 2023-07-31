@@ -3,7 +3,7 @@
 A simple Tetris clone coded in Java using the StdDraw library.
 
 <p align="center">
-  <img src="https://github.com/AizenBaidya/Tetris-Clone/assets/106003703/4c9d0256-450c-4511-8bad-d6b45e466d7f" width="240" height="427"/>
+  <img src="https://github.com/AizenBaidya/Tetris-Clone/assets/106003703/5a977f6e-8607-4a05-8efd-21b5d478f721" width="240" height="427"/>
 </p>
 
 (The video is sped up by 8x.)
