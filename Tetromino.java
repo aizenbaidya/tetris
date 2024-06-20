@@ -4,25 +4,30 @@ import java.awt.event.KeyEvent;
 public abstract class Tetromino {
     private final Color COLOR;
     private final int UPDATE_INTERVAL_MS = 500;
+    private final int ROTATE_INTERVAL_MS = 250;
 
-    private Point[] points;
-    private Point origin;
+    private final Point[] points;
+    private final Point origin;
     private boolean isPlaced;
-    private long previousTime;
+    private long previousMoveTime;
+    private long previousRotateTime;
 
     public Tetromino(Point[] points, Point origin, Color color) {
         this.points = points;
         this.origin = origin;
         COLOR = color;
         isPlaced = false;
-        previousTime = System.currentTimeMillis();
+        previousMoveTime = previousRotateTime = System.currentTimeMillis();
     }
 
     public void update(Color[][] board) {
-        final long TIME_DIFF_MS = System.currentTimeMillis() - previousTime;
-        if (TIME_DIFF_MS >= UPDATE_INTERVAL_MS && canMoveDown(board)) {
+        final long CURRENT_TIME = System.currentTimeMillis();
+        final long MOVE_TIME_DIFF = CURRENT_TIME - previousMoveTime;
+        final long ROTATE_TIME_DIFF = CURRENT_TIME - previousRotateTime;
+
+        if (MOVE_TIME_DIFF >= UPDATE_INTERVAL_MS && canMoveDown(board)) {
             incrementYPoints();
-            previousTime = System.currentTimeMillis();
+            previousMoveTime = System.currentTimeMillis();
         }
         if (StdDraw.isKeyPressed(KeyEvent.VK_S) && canMoveDown(board)) {
             incrementYPoints();
@@ -30,27 +35,28 @@ public abstract class Tetromino {
             decrementXPoints();
         } else if (StdDraw.isKeyPressed(KeyEvent.VK_D) && canMoveRight(board)) {
             incrementXPoints();
-        } else if (StdDraw.isKeyPressed(KeyEvent.VK_R)) {
+        } else if (StdDraw.isKeyPressed(KeyEvent.VK_R) && ROTATE_TIME_DIFF >= ROTATE_INTERVAL_MS) {
             Point[] rotatedPoints = getRotatedPoints();
             if (canRotate(board, rotatedPoints)) {
                 rotate(rotatedPoints);
+                previousRotateTime = CURRENT_TIME;
             }
         }
     }
 
     public void draw() {
         StdDraw.setPenColor(COLOR);
-        for (int i = 0; i < points.length; i++) {
-            double x = points[i].getX() * Tetris.CELL_SIZE + Tetris.CELL_SIZE / 2;
-            double y = points[i].getY() * Tetris.CELL_SIZE + Tetris.CELL_SIZE / 2;
+        for (Point point : points) {
+            double x = point.getX() * Tetris.CELL_SIZE + Tetris.CELL_SIZE / 2;
+            double y = point.getY() * Tetris.CELL_SIZE + Tetris.CELL_SIZE / 2;
             StdDraw.filledRectangle(x, y, Tetris.CELL_SIZE / 2, Tetris.CELL_SIZE / 2);
         }
     }
 
     private boolean canMoveDown(Color[][] board) {
-        for (int i = 0; i < points.length; i++) {
-            int x = (int) points[i].getX();
-            int y = (int) points[i].getY();
+        for (Point point : points) {
+            int x = (int) point.getX();
+            int y = (int) point.getY();
             if (y + 1 >= Tetris.ROWS + Tetris.ROW_BUFFER || board[y + 1][x] != null) {
                 isPlaced = true;
                 return false;
@@ -60,9 +66,9 @@ public abstract class Tetromino {
     }
 
     private boolean canMoveLeft(Color[][] board) {
-        for (int i = 0; i < points.length; i++) {
-            int x = (int) points[i].getX();
-            int y = (int) points[i].getY();
+        for (Point point : points) {
+            int x = (int) point.getX();
+            int y = (int) point.getY();
             if (x <= 0 || board[y][x - 1] != null) {
                 return false;
             }
@@ -71,9 +77,9 @@ public abstract class Tetromino {
     }
 
     private boolean canMoveRight(Color[][] board) {
-        for (int i = 0; i < points.length; i++) {
-            int x = (int) points[i].getX();
-            int y = (int) points[i].getY();
+        for (Point point : points) {
+            int x = (int) point.getX();
+            int y = (int) point.getY();
             if (x + 1 >= Tetris.COLS || board[y][x + 1] != null) {
                 return false;
             }
@@ -82,8 +88,7 @@ public abstract class Tetromino {
     }
 
     private boolean canRotate(Color[][] board, Point[] rotatedPoints) {
-        for (int i = 0; i < rotatedPoints.length; i++) {
-            Point point = rotatedPoints[i];
+        for (Point point : rotatedPoints) {
             if (outOfBounds(point) || intersects(board, point)) {
                 return false;
             }
@@ -111,22 +116,22 @@ public abstract class Tetromino {
     }
 
     private void incrementXPoints() {
-        for (int i = 0; i < points.length; i++) {
-            points[i].incrementX();
+        for (Point point : points) {
+            point.incrementX();
         }
         origin.incrementX();
     }
 
     private void incrementYPoints() {
-        for (int i = 0; i < points.length; i++) {
-            points[i].incrementY();
+        for (Point point : points) {
+            point.incrementY();
         }
         origin.incrementY();
     }
 
     private void decrementXPoints() {
-        for (int i = 0; i < points.length; i++) {
-            points[i].decrementX();
+        for (Point point : points) {
+            point.decrementX();
         }
         origin.decrementX();
     }

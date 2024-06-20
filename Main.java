@@ -2,23 +2,33 @@ import java.awt.Font;
 import java.awt.event.KeyEvent;
 
 public class Main {
+    private static final int WIDTH = Tetris.COLS * Tetris.CELL_SIZE;
+    private static final int HEIGHT = Tetris.ROWS * Tetris.CELL_SIZE;
+
     public static void main(String[] args) {
-        final int WIDTH = Tetris.COLS * Tetris.CELL_SIZE;
-        final int HEIGHT = Tetris.ROWS * Tetris.CELL_SIZE;
         StdDraw.setTitle("Tetris");
         StdDraw.setCanvasSize(WIDTH, HEIGHT);
         StdDraw.setXscale(0, WIDTH);
-        StdDraw.setYscale(HEIGHT + Tetris.ROW_BUFFER * Tetris.CELL_SIZE,
-                Tetris.ROW_BUFFER * Tetris.CELL_SIZE);
+        final int HEIGHT_BUFFER = Tetris.ROW_BUFFER * Tetris.CELL_SIZE;
+        StdDraw.setYscale(HEIGHT + HEIGHT_BUFFER, HEIGHT_BUFFER);
         StdDraw.enableDoubleBuffering();
         StdDraw.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
-        Tetris tetris = new Tetris();
+        runGameLoop();
+    }
+
+    private static void runGameLoop() {
+        Tetris tetris = Tetris.getInstance();
         while (true) {
+            if (StdDraw.isKeyPressed(KeyEvent.VK_ESCAPE)) {
+                System.exit(0);
+            }
+
             if (tetris.isGameOver()) {
                 StdDraw.setPenColor(StdDraw.WHITE);
                 StdDraw.text(WIDTH / 2, HEIGHT / 2, "GAME OVER!");
+
                 if (StdDraw.isKeyPressed(KeyEvent.VK_SPACE)) {
-                    tetris = new Tetris();
+                    tetris.reset();
                 }
             } else {
                 StdDraw.clear(StdDraw.BLACK);

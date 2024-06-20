@@ -1,7 +1,10 @@
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class Tetris {
+    private static Tetris instance = null;
+
     public static final int ROWS = 20;
     public static final int ROW_BUFFER = 2;
     public static final int COLS = 10;
@@ -11,20 +14,35 @@ public class Tetris {
     private LinkedList<Block> bag;
     private Tetromino currentBlock;
 
-    public Tetris() {
+    private Tetris() {
+        initializeGame();
+    }
+
+    public static Tetris getInstance() {
+        if (instance == null) {
+            instance = new Tetris();
+        }
+        return instance;
+    }
+
+    private void initializeGame() {
         board = new Color[ROWS + ROW_BUFFER][COLS];
         bag = new LinkedList<>();
         fillBag();
         currentBlock = getNextBlock();
     }
 
+    public void reset() {
+        initializeGame();
+    }
+
     public void update() {
         checkAndRemoveFullRows();
         if (currentBlock.isPlaced()) {
             Point[] points = currentBlock.getPoints();
-            for (int i = 0; i < points.length; i++) {
-                int x = (int) points[i].getX();
-                int y = (int) points[i].getY();
+            for (Point point : points) {
+                int x = (int) point.getX();
+                int y = (int) point.getY();
                 board[y][x] = currentBlock.getColor();
             }
             currentBlock = getNextBlock();
@@ -40,9 +58,7 @@ public class Tetris {
     }
 
     private void fillBag() {
-        for (Block block : Block.values()) {
-            bag.add(block);
-        }
+        bag.addAll(Arrays.asList(Block.values()));
     }
 
     private Tetromino getNextBlock() {
@@ -52,24 +68,16 @@ public class Tetris {
         int rand = (int) (Math.random() * bag.size());
         Block block = bag.get(rand);
         bag.remove(rand);
-        switch (block) {
-            case I_BLOCK:
-                return new IBlock();
-            case J_BLOCK:
-                return new JBlock();
-            case L_BLOCK:
-                return new LBlock();
-            case O_BLOCK:
-                return new OBlock();
-            case S_BLOCK:
-                return new SBlock();
-            case T_BLOCK:
-                return new TBlock();
-            case Z_BLOCK:
-                return new ZBlock();
-            default:
-                return null;
-        }
+        return switch (block) {
+            case I_BLOCK -> new IBlock();
+            case J_BLOCK -> new JBlock();
+            case L_BLOCK -> new LBlock();
+            case O_BLOCK -> new OBlock();
+            case S_BLOCK -> new SBlock();
+            case T_BLOCK -> new TBlock();
+            case Z_BLOCK -> new ZBlock();
+            default -> null;
+        };
     }
 
     private void checkAndRemoveFullRows() {
@@ -91,9 +99,7 @@ public class Tetris {
 
     private void shiftAllRowsDown(int r) {
         for (int row = r; row > ROW_BUFFER; row--) {
-            for (int col = 0; col < COLS; col++) {
-                board[row][col] = board[row - 1][col];
-            }
+            System.arraycopy(board[row - 1], 0, board[row], 0, COLS);
         }
     }
 
@@ -126,8 +132,8 @@ public class Tetris {
     public boolean isGameOver() {
         if (currentBlock.isPlaced()) {
             Point[] points = currentBlock.getPoints();
-            for (int i = 0; i < points.length; i++) {
-                double y = points[i].getY();
+            for (Point point : points) {
+                double y = point.getY();
                 if (y < ROW_BUFFER) {
                     return true;
                 }
